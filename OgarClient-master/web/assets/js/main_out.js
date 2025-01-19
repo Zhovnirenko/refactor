@@ -1,4 +1,4 @@
-(function() {
+(function () {
     'use strict';
 
     if (typeof WebSocket === 'undefined' || typeof DataView === 'undefined' ||
@@ -10,11 +10,13 @@
     function byId(id) {
         return document.getElementById(id);
     }
+
     /*
     function byClass(clss, parent) {
         return (parent || document).getElementsByClassName(clss);
     }
     */
+
 
     class Sound {
         constructor(src, volume, maximum) {
@@ -23,12 +25,14 @@
             this.maximum = typeof maximum === 'number' ? maximum : Infinity;
             this.elms = [];
         }
+
         play(vol) {
             if (typeof vol === 'number') this.volume = vol;
             const toPlay = this.elms.find((elm) => elm.paused) ?? this.add();
             toPlay.volume = this.volume;
             toPlay.play();
         }
+
         add() {
             if (this.elms.length >= this.maximum) return this.elms[0];
             const elm = new Audio(this.src);
@@ -65,19 +69,23 @@
             const v = parseInt(hex, 16);
             return new Color(v >>> 16 & 255, v >>> 8 & 255, v & 255, `#${hex}`);
         }
+
         constructor(r, g, b, hex) {
             this.r = r;
             this.g = g;
             this.b = b;
             this.hexCache = hex;
         }
+
         clone() {
             return new Color(this.r, this.g, this.b);
         }
+
         toHex() {
             if (this.hexCache) return this.hexCache;
             return this.hexCache = `#${(1 << 24 | this.r << 16 | this.g << 8 | this.b).toString(16).slice(1)}`;
         }
+
         darken(grade = 1) {
             grade /= 10;
             this.r *= 1 - grade;
@@ -85,6 +93,7 @@
             this.b *= 1 - grade;
             return this;
         }
+
         darker(grade = 1) {
             return this.clone().darken(grade);
         }
@@ -102,58 +111,70 @@
             this.reset();
             return this;
         }
+
         reset(littleEndian = this._e) {
             this._e = littleEndian;
             this._b = [];
             this._o = 0;
         }
+
         setUint8(a) {
             if (a >= 0 && a < 256) this._b.push(a);
             return this;
         }
+
         setInt8(a) {
             if (a >= -128 && a < 128) this._b.push(a);
             return this;
         }
+
         setUint16(a) {
             this.tmpBuf.setUint16(0, a, this._e);
             this._move(2);
             return this;
         }
+
         setInt16(a) {
             this.tmpBuf.setInt16(0, a, this._e);
             this._move(2);
             return this;
         }
+
         setUint32(a) {
             this.tmpBuf.setUint32(0, a, this._e);
             this._move(4);
             return this;
         }
+
         setInt32(a) {
             this.tmpBuf.setInt32(0, a, this._e);
             this._move(4);
             return this;
         }
+
         setFloat32(a) {
             this.tmpBuf.setFloat32(0, a, this._e);
             this._move(4);
             return this;
         }
+
         setFloat64(a) {
             this.tmpBuf.setFloat64(0, a, this._e);
             this._move(8);
             return this;
         }
+
         _move(b) {
             for (let i = 0; i < b; i++) this._b.push(this.tmpBuf.getUint8(i));
         }
+
         setStringUTF8(s) {
             const bytesStr = unescape(encodeURIComponent(s));
             for (let i = 0, l = bytesStr.length; i < l; i++) this._b.push(bytesStr.charCodeAt(i));
             this._b.push(0);
             return this;
         }
+
         build() {
             return new Uint8Array(this._b);
         }
@@ -165,34 +186,44 @@
             this._e = littleEndian;
             if (view) this.repurpose(view, offset);
         }
+
         repurpose(view, offset) {
             this.view = view;
             this._o = offset || 0;
         }
+
         getUint8() {
             return this.view.getUint8(this._o++, this._e);
         }
+
         getInt8() {
             return this.view.getInt8(this._o++, this._e);
         }
+
         getUint16() {
             return this.view.getUint16((this._o += 2) - 2, this._e);
         }
+
         getInt16() {
             return this.view.getInt16((this._o += 2) - 2, this._e);
         }
+
         getUint32() {
             return this.view.getUint32((this._o += 4) - 4, this._e);
         }
+
         getInt32() {
             return this.view.getInt32((this._o += 4) - 4, this._e);
         }
+
         getFloat32() {
             return this.view.getFloat32((this._o += 4) - 4, this._e);
         }
+
         getFloat64() {
             return this.view.getFloat64((this._o += 8) - 8, this._e);
         }
+
         getStringUTF8() {
             let s = '', b;
             while ((b = this.view.getUint8(this._o++)) !== 0) s += String.fromCharCode(b);
@@ -204,15 +235,19 @@
         static get verbosity() {
             return 2;
         }
+
         static error() {
             if (Logger.verbosity > 0) console.error.apply(null, arguments);
         }
+
         static warn() {
             if (Logger.verbosity > 1) console.warn.apply(null, arguments);
         }
+
         static info() {
             if (Logger.verbosity > 2) console.info.apply(null, arguments);
         }
+
         static debug() {
             if (Logger.verbosity > 3) console.debug.apply(null, arguments);
         }
@@ -514,6 +549,7 @@
             }
         }
     }
+
     function sendMouseMove(x, y) {
         const writer = new Writer(true);
         writer.setUint8(0x10);
@@ -522,12 +558,14 @@
         writer._b.push(0, 0, 0, 0);
         wsSend(writer);
     }
+
     function sendPlay(name) {
         const writer = new Writer(true);
         writer.setUint8(0x00);
         writer.setStringUTF8(name);
         wsSend(writer);
     }
+
     function sendChat(text) {
         const writer = new Writer();
         writer.setUint8(0x63);
@@ -657,6 +695,14 @@
         fillSkin: true,
         backgroundSectors: false,
         jellyPhysics: true,
+        _useEyesAll: false,
+        get useEyesAll() {
+            return this._useEyesAll;
+        },
+        set useEyesAll(a) {
+            this._useEyesAll = a;
+        }
+
     };
     const pressed = {
         ' ': false,
@@ -688,6 +734,7 @@
         escOverlayShown = false;
         byId('overlays').hide();
     }
+
     function showESCOverlay() {
         escOverlayShown = true;
         byId('overlays').show(0.5);
@@ -698,12 +745,15 @@
         scaleForth(ctx);
         ctx.translate(-camera.x, -camera.y);
     }
+
     function scaleForth(ctx) {
         ctx.scale(camera.scale, camera.scale);
     }
+
     function scaleBack(ctx) {
         ctx.scale(1 / camera.scale, 1 / camera.scale);
     }
+
     function fromCamera(ctx) {
         ctx.translate(camera.x, camera.y);
         scaleBack(ctx);
@@ -717,6 +767,7 @@
                 settings[id] = elm[prop];
             });
         }
+
         switch (elm.tagName.toLowerCase()) {
             case 'input':
                 switch (elm.type.toLowerCase()) {
@@ -734,6 +785,7 @@
                 break;
         }
     }
+
     function loadSettings() {
         const text = localStorage.getItem('settings');
         const obj = text ? JSON.parse(text) : settings;
@@ -745,6 +797,7 @@
             } else Logger.info(`setting ${prop} not loaded because there is no element for it.`);
         }
     }
+
     function storeSettings() {
         localStorage.setItem('settings', JSON.stringify(settings));
     }
@@ -837,7 +890,7 @@
     }
 
     function drawPosition() {
-        if(border.centerX !== 0 || border.centerY !== 0 || !settings.showPosition) return;
+        if (border.centerX !== 0 || border.centerY !== 0 || !settings.showPosition) return;
         const width = 200 * (border.width / border.height);
         const height = 40 * (border.height / border.width);
 
@@ -910,7 +963,7 @@
                     text = leaderboard.items[i];
                 } else {
                     text = leaderboard.items[i].name,
-                    isMe = leaderboard.items[i].me;
+                        isMe = leaderboard.items[i].me;
                 }
                 if (leaderboard.type === 'ffa') text = `${i + 1}. ${text}`;
                 ctx.fillStyle = isMe ? '#FAA' : '#FFF';
@@ -920,6 +973,7 @@
             }
         }
     }
+
     function drawGrid() {
         mainCtx.save();
         mainCtx.lineWidth = 1;
@@ -944,6 +998,7 @@
         mainCtx.stroke();
         mainCtx.restore();
     }
+
     function drawBackgroundSectors() {
         if (border === undefined || border.width === undefined) return;
         mainCtx.save();
@@ -969,6 +1024,7 @@
         }
         mainCtx.restore();
     }
+
     function drawMinimap() {
         if (border.centerX !== 0 || border.centerY !== 0 || !settings.showMinimap) return;
         mainCtx.save();
@@ -1113,10 +1169,20 @@
             mainCtx.drawImage(stats.canvas, 2, height);
         }
         if (leaderboard.visible) {
+            const exitButton = document.getElementById('exit-button');
+            const exitButtonHeight = exitButton ? exitButton.offsetHeight : 0;
+            const exitButtonTop = exitButton ? exitButton.offsetTop : 0;
+            const leaderboardOffset = exitButtonHeight + exitButtonTop + 10;
+            const leaderboardWidth = leaderboard.canvas.width;
+            const exitButtonWidth = exitButton.offsetWidth;
+
             mainCtx.drawImage(
                 leaderboard.canvas,
-                mainCanvas.width / camera.viewportScale - 10 - leaderboard.canvas.width,
-                10);
+                mainCanvas.width / camera.viewportScale - 10 - leaderboard.canvas.width, // Позиція справа
+                leaderboardOffset
+            );
+
+            exitButton.style.right = `calc(${leaderboardWidth / 2}px - ${exitButtonWidth / 2}px - 5px)`; // Центруємо по ширині лідерборда
         }
         if (settings.showChat && (chat.visible || isTyping)) {
             mainCtx.globalAlpha = isTyping ? 1 : Math.max(1000 - syncAppStamp + chat.waitUntil, 0) / 1000;
@@ -1185,9 +1251,11 @@
         }
         camera.scale += (camera.target.scale - camera.scale) / 9;
     }
+
     function sqDist(a, b) {
         return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
     }
+
     function updateQuadtree() {
         const w = 1920 / camera.sizeScale;
         const h = 1080 / camera.sizeScale;
@@ -1208,6 +1276,7 @@
                 skin: (skin || '').trim() || name,
             };
         }
+
         constructor(id, x, y, s, name, color, skin, flags) {
             this.destroyed = false;
             this.diedBy = 0;
@@ -1234,6 +1303,7 @@
             this.points = [];
             this.pointsVel = [];
         }
+
         destroy(killerId) {
             cells.byId.delete(this.id);
             if (cells.mine.remove(this.id) && cells.mine.length === 0) showESCOverlay();
@@ -1244,6 +1314,7 @@
                 this.updated = syncUpdStamp;
             }
         }
+
         update(relativeTime) {
             const prevFrameSize = this.s;
             const dt = Math.max(Math.min((relativeTime - this.updated) / 120, 1), 0);
@@ -1266,6 +1337,27 @@
                     for (const point of this.points) point.rl *= ratio;
                 }
             }
+        }
+        updateEyePosition(mouseX, mouseY) {
+            this.eyeX = this.x;
+            this.eyeY = this.y - this.s / 2;
+
+            this.eyeRadius = this.s / 2;
+            this.pupilRadius = this.eyeRadius / 3;
+
+            let dx = mouseX - this.eyeX;
+            let dy = mouseY - this.eyeY;
+
+            let angle = Math.atan2(dy, dx);
+
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            let maxPupilDistance = this.eyeRadius - this.pupilRadius;
+
+            let clampedDistance = Math.min(distance, maxPupilDistance);
+
+            this.pupilOffsetX = Math.cos(angle) * clampedDistance;
+            this.pupilOffsetY = Math.sin(angle) * clampedDistance;
         }
         updateNumPoints() {
             let numPoints = Math.min(Math.max(this.s * camera.scale | 0, CELL_POINTS_MIN), CELL_POINTS_MAX);
@@ -1297,6 +1389,7 @@
                 this.pointsVel.splice(i, 0, vel);
             }
         }
+
         movePoints() {
             const pointsVel = this.pointsVel.slice();
             for (let i = 0; i < this.points.length; ++i) {
@@ -1318,8 +1411,7 @@
                 }, (item) => item.parent !== this && sqDist(item, curP) <= 25);
                 if (!affected &&
                     (curP.x < border.left || curP.y < border.top ||
-                    curP.x > border.right || curP.y > border.bottom))
-                {
+                        curP.x > border.right || curP.y > border.bottom)) {
                     affected = true;
                 }
                 if (affected) {
@@ -1339,11 +1431,13 @@
                 curP.y = this.y + Math.sin(angle) * rl;
             }
         }
+
         setName(rawName) {
             const {name, skin} = Cell.parseName(rawName);
             this.name = name;
             this.setSkin(skin);
         }
+
         setSkin(value) {
             this.skin = (value && value[0] === '%' ? value.slice(1) : value) || this.skin;
             if (this.skin === null || !knownSkins.has(this.skin) || loadedSkins.has(this.skin)) {
@@ -1353,6 +1447,7 @@
             skin.src = `${SKIN_URL}${this.skin}.png`;
             loadedSkins.set(this.skin, skin);
         }
+
         setColor(value) {
             if (!value) {
                 Logger.warn('Got no color');
@@ -1361,13 +1456,25 @@
             this.color = value;
             this.sColor = value.darker();
         }
+
+        setEse(value) {
+            if (!value) {
+                Logger.warn('Got no color');
+                return;
+            }
+            this.color = value;
+            this.sColor = value.darker();
+        }
+
         draw(ctx) {
             ctx.save();
             this.drawShape(ctx);
             this.drawText(ctx);
             ctx.restore();
         }
+
         drawShape(ctx) {
+
             ctx.fillStyle = settings.showColor ? this.color.toHex() : '#FFFFFF';
             ctx.strokeStyle = settings.showColor ? this.sColor.toHex() : '#E5E5E5';
             ctx.lineWidth = Math.max(~~(this.s / 50), 10);
@@ -1397,6 +1504,8 @@
             } else {
                 ctx.arc(this.x, this.y, this.s, 0, PI_2, false);
             }
+
+
             ctx.closePath();
 
             if (this.destroyed) {
@@ -1421,7 +1530,35 @@
                 ctx.stroke();
                 this.s += ctx.lineWidth / 2;
             }
+            //add eye
+
+            if (settings._useEyesAll || cells.mine.indexOf(this.id) !== -1) {
+
+                let tesr = 0;
+                console.log(tesr +' [} '+(mouseY - mainCanvas.height / 2) / camera.scale + camera.y);
+                this.updateEyePosition((mouseX - mainCanvas.width / 2) / camera.scale + camera.x, (mouseY - mainCanvas.height / 2) / camera.scale + camera.y);
+
+                ctx.beginPath();
+                ctx.arc(this.eyeX, this.eyeY, this.eyeRadius, 0, Math.PI * 2, false);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                ctx.closePath();
+
+                ctx.beginPath();
+                ctx.arc(
+                    this.eyeX + this.pupilOffsetX,
+                    this.eyeY + this.pupilOffsetY,
+                    this.pupilRadius,
+                    0,
+                    Math.PI * 2,
+                    false
+                );
+                ctx.fillStyle = 'black';
+                ctx.fill();
+                ctx.closePath();
+            }
         }
+
         drawText(ctx) {
             if (this.s < 20 || this.jagged) return;
             if (this.name && settings.showNames) {
@@ -1454,7 +1591,7 @@
 
     // 2-var draw-stay cache
     const cachedNames = new Map();
-    const cachedMass  = new Map();
+    const cachedMass = new Map();
     window.cachedNames = cachedNames;
     window.cachedMass = cachedMass;
 
@@ -1473,6 +1610,7 @@
         (ctx.lineWidth !== 1) && ctx.strokeText(text, 0, 0);
         ctx.fillText(text, 0, 0);
     }
+
     function drawRaw(ctx, x, y, text, size) {
         ctx.font = size + 'px Ubuntu';
         ctx.textBaseline = 'middle';
@@ -1484,6 +1622,7 @@
         ctx.fillText(text, x, y);
         ctx.restore();
     }
+
     function newNameCache(value, size) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -1500,10 +1639,11 @@
         cachedNames.get(value).set(size, cache);
         return cache;
     }
+
     function newMassCache(size) {
         const canvases = {
-            0: { }, 1: { }, 2: { }, 3: { }, 4: { },
-            5: { }, 6: { }, 7: { }, 8: { }, 9: { }
+            0: {}, 1: {}, 2: {}, 3: {}, 4: {},
+            5: {}, 6: {}, 7: {}, 8: {}, 9: {}
         };
         for (const i in canvases) {
             const canvas = canvases[i].canvas = document.createElement('canvas');
@@ -1522,9 +1662,11 @@
         cachedMass.set(size, cache);
         return cache;
     }
+
     function toleranceTest(a, b, tolerance) {
         return (a - tolerance) <= b && b <= (a + tolerance);
     }
+
     function getNameCache(value, size) {
         if (!cachedNames.has(value)) return newNameCache(value, size);
         const sizes = Array.from(cachedNames.get(value).keys());
@@ -1535,6 +1677,7 @@
         }
         return newNameCache(value, size);
     }
+
     function getMassCache(size) {
         const sizes = Array.from(cachedMass.keys());
         for (let i = 0, l = sizes.length; i < l; i++) {
@@ -1582,11 +1725,13 @@
         }
         ctx.restore();
     }
+
     function processKey(event) {
         let key = CODE_TO_KEY[event.code] || event.key.toLowerCase();
         if (Object.hasOwnProperty.call(IE_KEYS, key)) key = IE_KEYS[key]; // IE fix
         return key;
     }
+
     function keydown(event) {
         const key = processKey(event);
         if (pressed[key]) return;
@@ -1619,11 +1764,13 @@
             }
         }
     }
+
     function keyup(event) {
         const key = processKey(event);
         if (Object.hasOwnProperty.call(pressed, key)) pressed[key] = false;
         if (key === 'w') clearInterval(macroIntervalID);
     }
+
     function handleScroll(event) {
         if (event.target !== mainCanvas) return;
         camera.userZoom *= event.deltaY > 0 ? 0.8 : 1.2;
@@ -1728,6 +1875,7 @@
         drawGame();
         Logger.info(`Init done in ${Date.now() - LOAD_START}ms`);
     }
+
     window.setserver = (url) => {
         if (url === wsUrl && ws && ws.readyState <= WebSocket.OPEN) return;
         wsInit(url);
@@ -1747,4 +1895,48 @@
         byId('gallery').show(0.5);
     };
     window.addEventListener('DOMContentLoaded', init);
+
+    function showExitConfirmation() {
+        const exitTime = 10000;
+
+        Swal.fire({
+            title: 'Do you really want to leave?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, exit',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: "top",
+                    showConfirmButton: false,
+                    timer: exitTime,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                    }
+                });
+                Toast.fire({
+                    icon: "info",
+                    title: "work completion!"
+                }).then(() => {
+                    // await pause(30000);
+                    window.location.href = '/';
+                    // gameReset();
+                });
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const exitButton = document.getElementById('exit-button');
+        if (exitButton) {
+            exitButton.addEventListener('click', showExitConfirmation);
+        }
+    });
+
 })();

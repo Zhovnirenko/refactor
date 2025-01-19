@@ -7,16 +7,16 @@
     "start": "node webserver.js"
   },
   "dependencies": {
-    "express": "^4.16.4"
+    "express": "^4.21.2"
   },
   "engines": {
-    "node": "8.x"
+    "node": ">=16.x"
   },
   "repository": {
     "url": "https://github.com/Cigar2/Cigar2"
   },
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^7.12.1"
+    "eslint": "^9.18.0"
   }
 }

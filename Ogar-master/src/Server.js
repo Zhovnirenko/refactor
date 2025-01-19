@@ -680,12 +680,32 @@ class Server {
         this.addNode(cell);
     }
     spawnFood() {
-        var cell = new Entity.Food(this, null, this.randomPos(), this.config.foodMinSize);
+        const isRare = Math.random() < 0.1; //Probability of rare food 10%
+
+        let cell;
+        if (isRare) {
+            cell = new Entity.RareFood(
+                this,
+                null,
+                this.randomPos(),
+                this.config.foodMinSize
+            );
+            cell.color = { r: 255, g: 215, b: 0 };
+        } else {
+            cell = new Entity.Food(
+                this,
+                null,
+                this.randomPos(),
+                this.config.foodMinSize
+            );
+            cell.color = this.getRandomColor();
+        }
+
         if (this.config.foodMassGrow) {
-            var maxGrow = this.config.foodMaxSize - cell.radius;
+            const maxGrow = this.config.foodMaxSize - cell.radius;
             cell.setSize(cell.radius += maxGrow * Math.random());
         }
-        cell.color = this.getRandomColor();
+
         this.addNode(cell);
     }
     spawnVirus() {

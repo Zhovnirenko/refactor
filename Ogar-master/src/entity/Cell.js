@@ -8,7 +8,7 @@ class Cell {
         this._radius2 = 0;
         this.radius = 0;
         this._mass = 0;
-        this.type = -1; // 0 = Player Cell, 1 = Food, 2 = Virus, 3 = Ejected Mass
+        this.type = -1; // 0 = Player Cell, 1 = Food, 2 = Virus, 3 = Ejected Mass 4 = Rare Food
         this.isVirus = false; // If true, then this cell has spikes around it
         this.isAgitated = false; // If true, then this cell has waves on it's outline
         this.killer = null; // Cell that ate this cell
@@ -45,7 +45,15 @@ class Cell {
             if (this.radius >= 250 && prey.radius <= 41 && prey.type == 0)
                 prey._radius2 = 0; // Can't grow from players under 17 mass
         }
-        return this.setSize(Math.sqrt(this._radius2 + prey._radius2));
+        if (prey.type == 4) {
+            const maxRadius = this.server.config.maxCellSize ;
+            const doubledArea = this._radius2 * 2;
+            const newRadius = Math.sqrt(doubledArea);
+            return this.setSize(Math.min(newRadius, maxRadius));
+        }else {
+            return this.setSize(Math.sqrt(this._radius2 + prey._radius2) );
+        }
+
     }
     // Boost cell
     setBoost(distance, angle) {

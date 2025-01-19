@@ -1,6 +1,7 @@
 const Logger = require('./Logger');
 const UserRoleEnum = require("../enum/UserRoleEnum");
 const Food = require('../entity/Food');
+const RareFood = require('../entity/RareFood');
 
 class Command {
     constructor(name, description, usage, minimumCredential, handler) {
@@ -44,6 +45,14 @@ const commands = [
             let food = new Food(player.server, null, cell.position, cell.radius);
             food.color = cell.color;
             player.server.addNode(food);
+        }
+        send(player, "You killed yourself");
+    }),
+    new Command("rare", "rare food", "", UserRoleEnum.GUEST, (player, args) => {
+        if (!player.cells.length)
+            return send(player, "You cannot use rare food, because you're not joined to the game!");
+        while (player.cells.length) {
+             new RareFood(player.server, null, cell.position, cell.radius);
         }
         send(player, "You killed yourself");
     }),

@@ -7,7 +7,7 @@
     "license": "Apache-2.0",
     "main": "src/index.js",
     "dependencies": {
-        "ws": "^7.4.0"
+        "ws": "^8.18.0"
     },
     "scripts": {
         "start": "cd src && node index"
@@ -18,5 +18,8 @@
     },
     "bugs": {
         "url": "https://github.com/Megabyte918/MultiOgarII/issues"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.9"
     }
 }
