@@ -382,12 +382,12 @@
                         updName: !!(flagMask & 0x08),
                         jagged: !!(flagMask & 0x01) || !!(flagMask & 0x10),
                         ejected: !!(flagMask & 0x20),
+                        rareSkin: !!(flagMask & 0x40),
                     };
 
                     const color = flags.updColor ? new Color(reader.getUint8(), reader.getUint8(), reader.getUint8()) : null;
                     const skin = flags.updSkin ? reader.getStringUTF8() : null;
                     const name = flags.updName ? reader.getStringUTF8() : null;
-
                     if (cells.byId.has(id)) {
                         const cell = cells.byId.get(id);
                         cell.update(syncUpdStamp);
@@ -403,8 +403,10 @@
                         if (skin) cell.setSkin(skin);
                     } else {
                         const cell = new Cell(id, x, y, s, name, color, skin, flags);
+
                         cells.byId.set(id, cell);
                         cells.list.push(cell);
+
                     }
                 }
                 // dissapear records
@@ -1302,6 +1304,8 @@
             this.born = syncUpdStamp;
             this.points = [];
             this.pointsVel = [];
+            this.rareSkin = flags.rareSkin;
+
         }
 
         destroy(killerId) {
@@ -1338,6 +1342,7 @@
                 }
             }
         }
+
         updateEyePosition(mouseX, mouseY) {
             this.eyeX = this.x;
             this.eyeY = this.y - this.s / 2;
@@ -1359,6 +1364,7 @@
             this.pupilOffsetX = Math.cos(angle) * clampedDistance;
             this.pupilOffsetY = Math.sin(angle) * clampedDistance;
         }
+
         updateNumPoints() {
             let numPoints = Math.min(Math.max(this.s * camera.scale | 0, CELL_POINTS_MIN), CELL_POINTS_MAX);
             if (this.jagged) numPoints = VIRUS_POINTS;
@@ -1439,6 +1445,7 @@
         }
 
         setSkin(value) {
+
             this.skin = (value && value[0] === '%' ? value.slice(1) : value) || this.skin;
             if (this.skin === null || !knownSkins.has(this.skin) || loadedSkins.has(this.skin)) {
                 return;
@@ -1446,6 +1453,14 @@
             const skin = new Image();
             skin.src = `${SKIN_URL}${this.skin}.png`;
             loadedSkins.set(this.skin, skin);
+
+        }
+
+        setRareSkin() {
+
+            const skin = new Image();
+            skin.src = `${SKIN_URL}img.png`;
+            loadedSkins.set('RareSkin', skin);
         }
 
         setColor(value) {
@@ -1457,14 +1472,6 @@
             this.sColor = value.darker();
         }
 
-        setEse(value) {
-            if (!value) {
-                Logger.warn('Got no color');
-                return;
-            }
-            this.color = value;
-            this.sColor = value.darker();
-        }
 
         draw(ctx) {
             ctx.save();
@@ -1481,6 +1488,7 @@
             if (this.s > 20) {
                 this.s -= ctx.lineWidth / 2;
             }
+            // console.log(this.jagged);
 
             ctx.beginPath();
             if (this.jagged) ctx.lineJoin = 'miter';
@@ -1500,11 +1508,11 @@
                         this.y + dist * Math.cos(angle)
                     )
                 }
+
                 ctx.lineTo(this.x, this.y + this.s + 3);
             } else {
                 ctx.arc(this.x, this.y, this.s, 0, PI_2, false);
             }
-
 
             ctx.closePath();
 
@@ -1514,11 +1522,18 @@
                 ctx.globalAlpha = Math.min(Date.now() - this.born, 120) / 120;
             }
 
-            const skinImage = loadedSkins.get(this.skin);
-            if (settings.showSkins && this.skin && skinImage &&
+            let skinImage;
+            if (this.rareSkin ) {
+                this.setRareSkin();
+                skinImage = loadedSkins.get('RareSkin');
+            } else {
+                skinImage = loadedSkins.get(this.skin);
+            }
+
+            if (settings.showSkins && skinImage &&
                 skinImage.complete && skinImage.width && skinImage.height) {
                 if (settings.fillSkin) ctx.fill();
-                ctx.save(); // for the clip
+                ctx.save();
                 ctx.clip();
                 ctx.drawImage(skinImage, this.x - this.s, this.y - this.s,
                     this.s * 2, this.s * 2);
@@ -1526,6 +1541,8 @@
             } else {
                 ctx.fill();
             }
+
+
             if (this.s > 20) {
                 ctx.stroke();
                 this.s += ctx.lineWidth / 2;
@@ -1534,8 +1551,6 @@
 
             if (settings._useEyesAll || cells.mine.indexOf(this.id) !== -1) {
 
-                let tesr = 0;
-                console.log(tesr +' [} '+(mouseY - mainCanvas.height / 2) / camera.scale + camera.y);
                 this.updateEyePosition((mouseX - mainCanvas.width / 2) / camera.scale + camera.x, (mouseY - mainCanvas.height / 2) / camera.scale + camera.y);
 
                 ctx.beginPath();

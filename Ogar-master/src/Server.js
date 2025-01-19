@@ -680,7 +680,7 @@ class Server {
         this.addNode(cell);
     }
     spawnFood() {
-        const isRare = Math.random() < 0.1; //Probability of rare food 10%
+        const isRare = Math.random() < 0.1; //Probability of rare food 40%
 
         let cell;
         if (isRare) {
